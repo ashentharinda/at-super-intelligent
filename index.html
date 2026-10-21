@@ -1,0 +1,542 @@
+<title>AT Super Intelligent</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap">
+<style>
+/* Layout: one sticky full-screen scene driven by scroll. A sphere of nodes opens, then
+   dissolves into a layered neural network. Headlines sit left; at the end a glass lens
+   holds the services. Single committed dark look (deep teal water, pearl-peach light). */
+:root {
+  --abyss: #03151a;
+  --deep: #07343a;
+  --sea: #1b7a77;
+  --pearl: #f6dccf;
+  --glow: #ffb59a;
+  --ink: #e9f3ef;
+  --mute: #9fbdb8;
+  --glass: rgba(10, 52, 56, 0.38);
+  --glass-edge: rgba(246, 220, 207, 0.28);
+  --serif: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --sans: "Hanken Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --gutter-l: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: auto; }
+body {
+  background: var(--abyss);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--glow); outline-offset: 3px; }
+
+/* nav */
+.nav {
+  position: fixed; z-index: 30; left: 0; right: 0;
+  top: calc(14px + env(safe-area-inset-top, 0px));
+  padding-left: var(--gutter-l); padding-right: var(--gutter-r);
+  display: flex; justify-content: center; pointer-events: none;
+}
+.pill {
+  pointer-events: auto;
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 6px 6px 16px;
+  background: rgba(3, 21, 26, 0.5);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--glass-edge);
+  border-radius: 999px;
+  max-width: 100%;
+}
+.brand { display: flex; align-items: center; gap: 9px; font-family: var(--serif); font-size: 1.15rem; white-space: nowrap; margin-right: 10px; }
+.brand i { width: 14px; height: 14px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, var(--glow) 55%, #c4705c); box-shadow: 0 0 12px rgba(255,181,154,.7); flex: none; }
+.pill button { background: none; border: 0; padding: 8px 12px; border-radius: 999px; font-size: .88rem; color: var(--mute); }
+.pill button:hover { color: var(--ink); }
+.pill .brief-btn { background: var(--pearl); color: #12363a; font-weight: 500; }
+.pill .brief-btn:hover { color: #12363a; background: #fff; }
+@media (max-width: 560px) { .pill .lnk { display: none; } .brand { margin-right: 4px; } }
+
+/* stage */
+.stage { position: relative; height: 650vh; }
+.sticky { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
+canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.chapters { position: absolute; inset: 0; pointer-events: none; }
+.ch {
+  position: absolute; left: 0; bottom: 0; top: 0;
+  width: min(560px, 100%);
+  padding-left: var(--gutter-l); padding-right: var(--gutter-r);
+  padding-left: max(var(--gutter-l), 5vw);
+  display: flex; flex-direction: column; justify-content: center; gap: 18px;
+  opacity: 0;
+}
+.ch h2, .ch h1 {
+  margin: 0; font-family: var(--serif); font-weight: 400;
+  font-size: clamp(2.6rem, 5.4vw, 5rem); line-height: 1; letter-spacing: -0.01em;
+  text-wrap: balance; text-shadow: 0 2px 30px rgba(3,21,26,.45);
+}
+.ch h1 em, .ch h2 em { display: block; font-style: italic; color: var(--pearl); }
+.ch p { margin: 0; max-width: 34ch; color: var(--ink); opacity: .86; font-size: 1.02rem; text-shadow: 0 1px 14px rgba(3,21,26,.6); }
+.ch .meta { font-size: .82rem; color: var(--mute); display: flex; gap: 18px; flex-wrap: wrap; }
+@media (max-width: 760px) {
+  .ch { justify-content: flex-end; padding-bottom: calc(11vh + env(safe-area-inset-bottom, 0px)); width: 100%; }
+  .ch p { max-width: 38ch; }
+}
+.scrollhint {
+  position: absolute; left: max(var(--gutter-l), 5vw); bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+  font-size: .8rem; color: var(--mute); display: flex; align-items: center; gap: 10px; transition: opacity .3s;
+}
+.scrollhint b { display: block; width: 1px; height: 34px; background: linear-gradient(var(--glow), transparent); animation: drip 2.2s ease-in-out infinite; }
+@keyframes drip { 0%{transform:scaleY(0);transform-origin:top} 50%{transform:scaleY(1);transform-origin:top} 51%{transform-origin:bottom} 100%{transform:scaleY(0);transform-origin:bottom} }
+@media (prefers-reduced-motion: reduce) { .scrollhint b { animation: none; } }
+
+/* lens (services) */
+.lens {
+  position: absolute; z-index: 5; left: 50%; top: 50%;
+  width: min(980px, calc(100% - 32px)); min-height: 440px;
+  transform: translate(-50%, -48%);
+  border-radius: 220px / 190px;
+  background:
+    radial-gradient(120% 90% at 20% 0%, rgba(246,220,207,.16), transparent 55%),
+    var(--glass);
+  border: 1px solid var(--glass-edge);
+  box-shadow: inset 0 0 60px rgba(246,220,207,.07), 0 30px 90px rgba(0,0,0,.35);
+  backdrop-filter: blur(10px) saturate(1.2); -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  opacity: 0; pointer-events: none;
+  display: grid; grid-template-columns: 1fr 1.15fr; align-items: center;
+  padding: 44px 64px 44px 40px;
+}
+.lens.on { pointer-events: auto; }
+.lens-side { min-height: 260px; }
+.lens h3 { margin: 0 0 4px; font-family: var(--serif); font-weight: 400; font-size: clamp(2rem, 3.6vw, 3rem); line-height: 1; }
+.lens .sub { margin: 0 0 18px; color: var(--mute); font-size: .86rem; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.tab { background: none; border: 1px solid var(--glass-edge); border-radius: 999px; padding: 6px 13px; font-size: .84rem; color: var(--mute); }
+.tab[aria-selected="true"] { background: rgba(246,220,207,.16); color: var(--ink); border-color: rgba(246,220,207,.55); }
+.lens .desc { margin: 0 0 12px; font-size: .98rem; max-width: 44ch; }
+.lens ul { margin: 0 0 18px; padding: 0; list-style: none; display: grid; gap: 4px; font-size: .88rem; color: var(--mute); }
+.lens li::before { content: ""; display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--glow); margin-right: 10px; vertical-align: middle; }
+.row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.row label { font-size: .82rem; color: var(--mute); margin-right: 4px; }
+.seg { display: inline-flex; border: 1px solid var(--glass-edge); border-radius: 999px; padding: 3px; }
+.seg button { background: none; border: 0; border-radius: 999px; padding: 6px 14px; font-size: .86rem; color: var(--mute); }
+.seg button[aria-pressed="true"] { background: var(--pearl); color: #12363a; }
+.cta { background: var(--pearl); color: #12363a; border: 0; border-radius: 999px; padding: 13px 22px; font-weight: 500; font-size: .95rem; transition: background .2s, transform .15s; }
+.cta:hover { background: #fff; }
+.cta:active { transform: scale(.98); }
+.fine { margin: 10px 0 0; font-size: .78rem; color: var(--mute); }
+@media (max-width: 760px) {
+  .lens { grid-template-columns: 1fr; top: auto; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 0); border-radius: 36px; padding: 22px 20px; min-height: 0; max-height: calc(100svh - 90px); overflow-y: auto; }
+  .lens-side { display: none; }
+  .lens ul { display: none; }
+  .lens .desc { font-size: .92rem; }
+}
+
+/* drawer */
+.scrim { position: fixed; inset: 0; z-index: 40; background: rgba(2,10,12,.5); opacity: 0; pointer-events: none; transition: opacity .3s; }
+.scrim.on { opacity: 1; pointer-events: auto; }
+.drawer {
+  position: fixed; z-index: 41; top: 0; right: 0; bottom: 0; width: min(400px, 100%);
+  background: #072a2f; border-left: 1px solid var(--glass-edge);
+  transform: translateX(100%); transition: transform .38s cubic-bezier(.2,.7,.2,1);
+  display: flex; flex-direction: column; gap: 16px;
+  padding: calc(22px + env(safe-area-inset-top, 0px)) var(--gutter-r) calc(22px + env(safe-area-inset-bottom, 0px)) 22px;
+}
+.drawer.on { transform: none; }
+.drawer header { display: flex; justify-content: space-between; align-items: baseline; }
+.drawer h4 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 1.9rem; }
+.x { background: none; border: 1px solid var(--glass-edge); border-radius: 50%; width: 34px; height: 34px; }
+.items { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; overflow-y: auto; }
+.items li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--glass-edge); border-radius: 16px; }
+.items small { display: block; color: var(--mute); }
+.items button { background: none; border: 0; color: var(--mute); font-size: .82rem; text-decoration: underline; }
+.empty { color: var(--mute); font-size: .92rem; margin: 0; }
+.drawer textarea { width: 100%; min-height: 110px; resize: vertical; background: rgba(255,255,255,.04); color: var(--ink); border: 1px solid var(--glass-edge); border-radius: 14px; padding: 12px; font: inherit; font-size: .92rem; }
+.drawer label { font-size: .84rem; color: var(--mute); }
+.drawer .cta { width: 100%; }
+.drawer .cta[disabled] { opacity: .45; cursor: not-allowed; }
+.spacer { flex: 1; }
+
+/* after the scene */
+.after { position: relative; background: var(--abyss); padding-block: 120px 56px; padding-left: max(var(--gutter-l), 5vw); padding-right: max(var(--gutter-r), 5vw); }
+.after .big { font-family: var(--serif); font-size: clamp(2.4rem, 7vw, 6rem); line-height: 1; margin: 0 0 56px; max-width: 14ch; text-wrap: balance; }
+.after .big em { color: var(--pearl); }
+.cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; max-width: 1100px; }
+.cols h5 { margin: 0 0 8px; font-family: var(--serif); font-weight: 400; font-size: 1.5rem; }
+.cols p { margin: 0; color: var(--mute); max-width: 34ch; }
+.foot { margin-top: 90px; padding-top: 22px; border-top: 1px solid rgba(246,220,207,.14); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: .84rem; color: var(--mute); }
+@media (max-width: 760px) { .cols { grid-template-columns: 1fr; gap: 28px; } .after { padding-top: 80px; } }
+</style>
+
+<nav class="nav" aria-label="Main">
+  <div class="pill">
+    <span class="brand"><i></i>AT Super Intelligent</span>
+    <button class="lnk" id="go-top" type="button">Story</button>
+    <button class="lnk" id="go-lens" type="button">Services</button>
+    <button class="brief-btn" id="open-brief" type="button">Brief (<span id="count">0</span>)</button>
+  </div>
+</nav>
+
+<main>
+<section class="stage" id="stage" aria-label="AT Super Intelligent">
+  <div class="sticky" id="sticky">
+    <canvas id="cv" aria-hidden="true"></canvas>
+
+    <div class="chapters">
+      <div class="ch" data-a="-1" data-b="0.2">
+        <h1>Intelligence,<em>held close.</em></h1>
+        <p>AT Super Intelligent builds AI, machine learning and IoT software for teams who want it working inside their product.</p>
+      </div>
+      <div class="ch" data-a="0.2" data-b="0.4">
+        <h2>Models,<em>made tangible.</em></h2>
+        <p>We train, tune and ship models, and connect them to the sensors and devices that feed them.</p>
+      </div>
+      <div class="ch" data-a="0.4" data-b="0.62">
+        <h2>Signal in.<em>Sense out.</em></h2>
+        <p>Sensors and devices send data in. A decision, an alert or a forecast comes out the other side. We build the layers between.</p>
+        <div class="meta"><span>Sensors</span><span>Models</span><span>Action</span></div>
+      </div>
+      <div class="ch" data-a="0.62" data-b="0.8">
+        <h2>Let the noise<em>fall quiet.</em></h2>
+        <p>Evaluation, device monitoring and a clear hand-over, so what we ship keeps working after we leave.</p>
+      </div>
+    </div>
+
+    <div class="scrollhint" id="hint"><b></b>Scroll to go deeper</div>
+
+    <section class="lens" id="lens" aria-label="What we build">
+      <div class="lens-side"></div>
+      <div>
+        <h3>What we build</h3>
+        <p class="sub">AI, ML and IoT software, from prototype to production</p>
+        <div class="tabs" role="tablist" id="tabs"></div>
+        <p class="desc" id="desc"></p>
+        <ul id="list"></ul>
+        <div class="row">
+          <label id="eng-l">Engagement</label>
+          <div class="seg" role="group" aria-labelledby="eng-l" id="seg">
+            <button type="button" aria-pressed="true" data-v="Prototype">Prototype</button>
+            <button type="button" aria-pressed="false" data-v="Production">Production</button>
+          </div>
+        </div>
+        <button class="cta" id="add" type="button">Add to project brief</button>
+        <p class="fine">Scope and timeline are agreed together after a first conversation.</p>
+      </div>
+    </section>
+  </div>
+</section>
+
+<section class="after">
+  <h2 class="big">Built to be used, <em>not demoed.</em></h2>
+  <div class="cols">
+    <div><h5>Start with the data</h5><p>We look at what you already collect before we pick a model, so the first version is grounded in your real inputs.</p></div>
+    <div><h5>Measure every answer</h5><p>Each project ships with an evaluation set, so you can see how good the system is and whether a change made it better.</p></div>
+    <div><h5>Hand it over clean</h5><p>Code, documentation and monitoring go to your team, with the people who built it available for questions.</p></div>
+  </div>
+  <div class="foot"><span>AT Super Intelligent</span><span>AI, machine learning and IoT software</span></div>
+</section>
+</main>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Project brief" aria-hidden="true">
+  <header><h4>Your brief</h4><button class="x" id="close" type="button" aria-label="Close brief">&times;</button></header>
+  <ul class="items" id="items"></ul>
+  <p class="empty" id="empty">Nothing added yet. Pick a service and choose Add to project brief.</p>
+  <label for="notes">What are you trying to solve?</label>
+  <textarea id="notes" placeholder="A few lines about your data, your users and what a good result looks like."></textarea>
+  <div class="spacer"></div>
+  <button class="cta" id="copy" type="button" disabled>Copy brief</button>
+  <p class="fine" style="margin:0">Copy the brief and send it to the AT Super Intelligent team.</p>
+</aside>
+
+<script>
+(function () {
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+  var stage = document.getElementById('stage');
+  var chs = [].slice.call(document.querySelectorAll('.ch'));
+  var lens = document.getElementById('lens'), hint = document.getElementById('hint');
+  var W = 0, H = 0, DPR = 1;
+
+  function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
+  function sm(a, b, x) { var t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function mix(c1, c2, t) { return [lerp(c1[0], c2[0], t) | 0, lerp(c1[1], c2[1], t) | 0, lerp(c1[2], c2[2], t) | 0]; }
+  function rgb(c) { return 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')'; }
+
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = cv.clientWidth; H = cv.clientHeight;
+    cv.width = W * DPR; cv.height = H * DPR;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  /* nodes: fibonacci sphere, sorted by x so the morph to layers is coherent */
+  var N = 200, layerCounts = [20, 36, 44, 44, 36, 20];
+  var sph = [];
+  for (var i = 0; i < N; i++) {
+    var y = 1 - (i + 0.5) * 2 / N, r = Math.sqrt(1 - y * y), th = i * 2.399963;
+    sph.push([Math.cos(th) * r, y, Math.sin(th) * r]);
+  }
+  sph.sort(function (a, b) { return a[0] - b[0]; });
+  var net = [], layerOf = [], seed = 7;
+  function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+  var idx = 0, layerStart = [];
+  layerCounts.forEach(function (c, L) {
+    layerStart.push(idx);
+    for (var j = 0; j < c; j++) {
+      net.push([(L - 2.5) * 0.62, ((j + 0.5) / c - 0.5) * 1.75, (rnd() - 0.5) * 0.7]);
+      layerOf.push(L); idx++;
+    }
+  });
+  var spherePairs = [], netPairs = [];
+  for (var a = 0; a < N; a++) for (var b = a + 1; b < N; b++) {
+    var dx = sph[a][0] - sph[b][0], dy = sph[a][1] - sph[b][1], dz = sph[a][2] - sph[b][2];
+    if (dx * dx + dy * dy + dz * dz < 0.14) spherePairs.push([a, b]);
+  }
+  for (var L = 0; L < layerCounts.length - 1; L++) {
+    for (var j = 0; j < layerCounts[L]; j++) {
+      var s = layerStart[L] + j, cands = [];
+      for (var k = 0; k < layerCounts[L + 1]; k++) {
+        var t2 = layerStart[L + 1] + k;
+        cands.push([Math.abs(net[s][1] - net[t2][1]), t2]);
+      }
+      cands.sort(function (p, q) { return p[0] - q[0]; });
+      for (var m = 0; m < 3; m++) netPairs.push([s, cands[m][1]]);
+    }
+  }
+  var bubbles = [];
+  for (var i = 0; i < 90; i++) bubbles.push({ x: Math.random(), y: Math.random(), r: 0.6 + Math.random() * 2.2, v: 0.01 + Math.random() * 0.03, z: 0.3 + Math.random() * 0.9 });
+  var proj = new Array(N);
+  for (var i = 0; i < N; i++) proj[i] = [0, 0, 0, 0];
+
+  var SURF_T = [44, 143, 134], SURF_B = [14, 74, 80], DEEP_T = [8, 56, 62], DEEP_B = [2, 14, 17];
+  var p = 0, ps = 0, t0 = performance.now(), last = t0;
+
+  function readScroll() {
+    var rect = stage.getBoundingClientRect();
+    var span = stage.offsetHeight - window.innerHeight;
+    p = clamp(-rect.top / span, 0, 1);
+  }
+  window.addEventListener('scroll', readScroll, { passive: true });
+  readScroll(); ps = p;
+
+  function frame(now) {
+    var dt = Math.min((now - last) / 1000, 0.05); last = now;
+    var t = reduce ? 2 : (now - t0) / 1000;
+    ps += (p - ps) * (reduce ? 1 : 0.09);
+    var d = sm(0, 0.55, ps), open = sm(0.1, 0.28, ps), m = sm(0.36, 0.56, ps), lensT = sm(0.8, 0.9, ps), calm = sm(0.78, 0.95, ps);
+
+    /* background */
+    var top = mix(SURF_T, DEEP_T, d), bot = mix(SURF_B, DEEP_B, d);
+    var g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, rgb(top)); g.addColorStop(1, rgb(bot));
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+    var wide = W > 760;
+    var unit = Math.min(W * (wide ? 0.2 : 0.3), H * 0.3);
+    unit *= lerp(1, wide ? 0.62 : 0.55, lensT);
+    var cx = wide ? lerp(W * 0.6, W * 0.33, lensT) : W * 0.5;
+    var cy = wide ? H * 0.5 : lerp(H * 0.36, H * 0.3, lensT);
+
+    ctx.globalCompositeOperation = 'lighter';
+    /* surface light */
+    var lightA = (1 - d) * 0.14;
+    if (lightA > 0.005) {
+      for (var i = 0; i < 12; i++) {
+        var lx = (((i * 0.137 + t * 0.012 * (1 + i % 3)) % 1.2) - 0.1) * W;
+        var ly = (0.08 + (i % 4) * 0.2 + Math.sin(t * 0.3 + i) * 0.02) * H;
+        var lr = 90 + (i % 5) * 50;
+        var lg = ctx.createRadialGradient(lx, ly, 0, lx, ly, lr);
+        lg.addColorStop(0, 'rgba(255,230,215,' + lightA + ')'); lg.addColorStop(1, 'rgba(255,230,215,0)');
+        ctx.fillStyle = lg; ctx.fillRect(lx - lr, ly - lr, lr * 2, lr * 2);
+      }
+    }
+    /* ripples around the closed core */
+    var rip = 1 - sm(0, 0.25, ps);
+    if (rip > 0.01) {
+      ctx.lineWidth = 1;
+      for (var k = 0; k < 5; k++) {
+        var u = ((t * 0.1 + k / 5) % 1);
+        ctx.strokeStyle = 'rgba(246,220,207,' + (1 - u) * 0.35 * rip + ')';
+        ctx.beginPath(); ctx.arc(cx, cy, unit * (0.95 + u * 1.7), 0, 6.2832); ctx.stroke();
+      }
+    }
+    /* pearl glow */
+    var gr = unit * (0.35 + 0.7 * open) * (1 - 0.75 * m);
+    if (gr > 4) {
+      var pg = ctx.createRadialGradient(cx, cy, 0, cx, cy, gr);
+      pg.addColorStop(0, 'rgba(255,225,205,' + (0.55 * (1 - m)) + ')');
+      pg.addColorStop(0.5, 'rgba(255,181,154,' + (0.18 * (1 - m)) + ')');
+      pg.addColorStop(1, 'rgba(255,181,154,0)');
+      ctx.fillStyle = pg; ctx.fillRect(cx - gr, cy - gr, gr * 2, gr * 2);
+    }
+
+    /* nodes */
+    var S = 1 + 0.38 * open;
+    var ang = (t * 0.12 + ps * 3.0) * (1 - m) + Math.sin(t * 0.25) * 0.18 * m;
+    var tilt = 0.28 * (1 - m) + 0.08 * m;
+    var ca = Math.cos(ang), sa = Math.sin(ang), ct = Math.cos(tilt), st = Math.sin(tilt);
+    for (var i = 0; i < N; i++) {
+      var x = lerp(sph[i][0] * S, net[i][0], m), y = lerp(sph[i][1] * S, net[i][1], m), z = lerp(sph[i][2] * S, net[i][2], m);
+      var x1 = x * ca + z * sa, z1 = -x * sa + z * ca;
+      var y2 = y * ct - z1 * st, z2 = y * st + z1 * ct;
+      var sc = 4 / (4 - z2);
+      proj[i][0] = cx + x1 * unit * sc; proj[i][1] = cy - y2 * unit * sc; proj[i][2] = sc; proj[i][3] = z2;
+    }
+    var vis = 1 - 0.55 * calm;
+    ctx.lineWidth = 0.8;
+    var arrs = [[spherePairs, (1 - m) * 0.3], [netPairs, m * 0.26]];
+    for (var q = 0; q < 2; q++) {
+      var pairs = arrs[q][0], base = arrs[q][1] * vis;
+      if (base < 0.01) continue;
+      for (var k = 0; k < pairs.length; k++) {
+        var A = proj[pairs[k][0]], B = proj[pairs[k][1]];
+        var da = 0.45 + 0.55 * clamp(((A[3] + B[3]) / 2 + 1.5) / 3, 0, 1);
+        ctx.strokeStyle = 'rgba(255,196,170,' + (base * da) + ')';
+        ctx.beginPath(); ctx.moveTo(A[0], A[1]); ctx.lineTo(B[0], B[1]); ctx.stroke();
+      }
+    }
+    var wave = (t * 1.3) % 9;
+    for (var i = 0; i < N; i++) {
+      var P = proj[i], fire = m > 0.3 ? Math.max(0, 1 - Math.abs(layerOf[i] - wave) * 0.7) * m : 0;
+      var da2 = 0.5 + 0.5 * clamp((P[3] + 1.5) / 3, 0, 1);
+      var rad = (1.4 + fire * 2.6) * P[2] * (wide ? 1.15 : 0.9);
+      ctx.fillStyle = 'rgba(255,205,180,' + clamp((0.55 + fire) * da2 * vis, 0, 1) + ')';
+      ctx.beginPath(); ctx.arc(P[0], P[1], rad, 0, 6.2832); ctx.fill();
+      if (fire > 0.35) {
+        ctx.fillStyle = 'rgba(255,181,154,' + fire * (wide ? 0.1 : 0.05) + ')';
+        ctx.beginPath(); ctx.arc(P[0], P[1], rad * 4.5, 0, 6.2832); ctx.fill();
+      }
+    }
+
+    /* bubbles / data motes */
+    for (var i = 0; i < bubbles.length; i++) {
+      var bb = bubbles[i];
+      if (!reduce) { bb.y -= bb.v * dt * bb.z; if (bb.y < -0.02) { bb.y = 1.02; bb.x = Math.random(); } }
+      var by = bb.y * H - ps * H * 0.5 * bb.z;
+      by = ((by % (H + 20)) + (H + 20)) % (H + 20) - 10;
+      ctx.fillStyle = 'rgba(246,220,207,' + (0.1 + 0.22 * d) * bb.z + ')';
+      ctx.beginPath(); ctx.arc(bb.x * W, by, bb.r * bb.z, 0, 6.2832); ctx.fill();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+
+    /* vignette */
+    var vg = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.3, W / 2, H / 2, Math.max(W, H) * 0.75);
+    vg.addColorStop(0, 'rgba(2,12,14,0)'); vg.addColorStop(1, 'rgba(2,12,14,' + (0.35 + 0.25 * d) + ')');
+    ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+
+    /* chapter text */
+    for (var i = 0; i < chs.length; i++) {
+      var c = chs[i], a = +c.dataset.a, b = +c.dataset.b;
+      var inn = a < 0 ? 1 : sm(a, a + 0.04, ps), out = 1 - sm(b - 0.04, b, ps);
+      var o = inn * out;
+      var ty = (1 - inn) * 24 - (1 - out) * 24;
+      c.style.opacity = o; c.style.transform = 'translateY(' + ty + 'px)';
+      c.style.visibility = o < 0.01 ? 'hidden' : 'visible';
+    }
+    hint.style.opacity = 1 - sm(0, 0.04, ps);
+    lens.style.opacity = lensT;
+    lens.style.visibility = lensT < 0.01 ? 'hidden' : 'visible';
+    lens.style.transform = (wide ? 'translate(-50%,' : 'translate(-50%,') + (wide ? (-48 + (1 - lensT) * 6) + '%)' : ((1 - lensT) * 30) + 'px)');
+    lens.classList.toggle('on', lensT > 0.5);
+
+    if (reduce) return;
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  if (reduce) { window.addEventListener('scroll', function () { requestAnimationFrame(frame); }, { passive: true }); window.addEventListener('resize', function () { requestAnimationFrame(frame); }); }
+
+  /* nav scrolling */
+  function goTo(prog) {
+    var span = stage.offsetHeight - window.innerHeight;
+    var y = stage.offsetTop + prog * span;
+    window.scrollTo({ top: y, behavior: reduce ? 'auto' : 'smooth' });
+  }
+  document.getElementById('go-top').onclick = function () { goTo(0); };
+  document.getElementById('go-lens').onclick = function () { goTo(0.95); };
+
+  /* services */
+  var SERVICES = [
+    { n: 'Language AI', d: 'Assistants, search and document understanding built on your own content.', l: ['Chat and search over your documents', 'Summaries, extraction and classification', 'An evaluation set to measure every answer'] },
+    { n: 'Computer vision', d: 'Models that read images and video for inspection, counting and tracking.', l: ['Defect and anomaly detection', 'Counting and tracking from camera feeds', 'Edge or cloud deployment'] },
+    { n: 'Predictive ML', d: 'Forecasts and scores built from data you already collect.', l: ['Demand, churn and risk models', 'Feature pipelines and scheduled retraining', 'Dashboards for the people who act on it'] },
+    { n: 'AI agents', d: 'Software that plans steps and uses your tools to finish a task.', l: ['Agents connected to your APIs and databases', 'Human approval steps where you need them', 'A log of every action taken'] },
+    { n: 'IoT systems', d: 'Sensors, gateways and cloud software that collect, move and act on data from the physical world.', l: ['Device firmware and sensor integration', 'Telemetry pipelines and live dashboards', 'Edge AI that runs on the device itself'] }
+  ];
+  var cur = 0, eng = 'Prototype', brief = [];
+  var tabs = document.getElementById('tabs'), desc = document.getElementById('desc'), list = document.getElementById('list');
+  SERVICES.forEach(function (s, i) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'tab'; b.setAttribute('role', 'tab'); b.textContent = s.n;
+    b.onclick = function () { cur = i; renderService(); };
+    tabs.appendChild(b);
+  });
+  function renderService() {
+    [].forEach.call(tabs.children, function (b, i) { b.setAttribute('aria-selected', i === cur ? 'true' : 'false'); });
+    desc.textContent = SERVICES[cur].d;
+    list.innerHTML = '';
+    SERVICES[cur].l.forEach(function (x) { var li = document.createElement('li'); li.textContent = x; list.appendChild(li); });
+  }
+  renderService();
+  [].forEach.call(document.getElementById('seg').children, function (b) {
+    b.onclick = function () {
+      eng = b.dataset.v;
+      [].forEach.call(b.parentNode.children, function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
+    };
+  });
+
+  /* drawer */
+  var drawer = document.getElementById('drawer'), scrim = document.getElementById('scrim');
+  var itemsEl = document.getElementById('items'), emptyEl = document.getElementById('empty');
+  var copyBtn = document.getElementById('copy'), notes = document.getElementById('notes'), countEl = document.getElementById('count');
+  function openDrawer(v) {
+    drawer.classList.toggle('on', v); scrim.classList.toggle('on', v);
+    drawer.setAttribute('aria-hidden', v ? 'false' : 'true');
+    if (v) document.getElementById('close').focus();
+  }
+  document.getElementById('open-brief').onclick = function () { openDrawer(true); };
+  document.getElementById('close').onclick = function () { openDrawer(false); };
+  scrim.onclick = function () { openDrawer(false); };
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') openDrawer(false); });
+  function renderBrief() {
+    itemsEl.innerHTML = '';
+    brief.forEach(function (it, i) {
+      var li = document.createElement('li');
+      var d = document.createElement('div');
+      d.textContent = it.n;
+      var sm2 = document.createElement('small'); sm2.textContent = it.e; d.appendChild(sm2);
+      var rm = document.createElement('button'); rm.type = 'button'; rm.textContent = 'Remove';
+      rm.onclick = function () { brief.splice(i, 1); renderBrief(); };
+      li.appendChild(d); li.appendChild(rm); itemsEl.appendChild(li);
+    });
+    emptyEl.hidden = brief.length > 0;
+    copyBtn.disabled = brief.length === 0;
+    countEl.textContent = brief.length;
+  }
+  renderBrief();
+  document.getElementById('add').onclick = function () {
+    var n = SERVICES[cur].n;
+    if (!brief.some(function (b) { return b.n === n && b.e === eng; })) brief.push({ n: n, e: eng });
+    renderBrief(); openDrawer(true);
+  };
+  function briefText() {
+    var s = 'Project brief for AT Super Intelligent\n\n' + brief.map(function (b) { return '- ' + b.n + ' (' + b.e + ')'; }).join('\n');
+    if (notes.value.trim()) s += '\n\nWhat we are trying to solve:\n' + notes.value.trim();
+    return s;
+  }
+  copyBtn.onclick = function () {
+    var txt = briefText();
+    function done() { copyBtn.textContent = 'Copied'; setTimeout(function () { copyBtn.textContent = 'Copy brief'; }, 1600); }
+    function fallback() { notes.value = txt; notes.focus(); notes.select(); copyBtn.textContent = 'Select and copy above'; }
+    try { navigator.clipboard.writeText(txt).then(done, fallback); } catch (e) { fallback(); }
+  };
+})();
+</script>
